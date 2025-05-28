@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const { OpenAI } = require('openai');
+const {authenticate} = require('./middlewares/auth.js');
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.post('/generate', async (req, res) => {
+app.post('/generate', authenticate, async (req, res) => {
   const { diff, commitType, format, maxLength } = req.body;
 
   if (!diff || !commitType || !format || !maxLength) {
@@ -51,5 +52,5 @@ app.post('/generate', async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`✅ Backend running on http://localhost:${PORT}`);
+  console.log(`✅ Backend running`);
 });

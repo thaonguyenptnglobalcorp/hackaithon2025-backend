@@ -32,7 +32,7 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
       apiKey: apiKey,
     });
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: process.env.CHATGPT_MODEL || 'gpt-4o',
       messages: [
         { role: 'system', content: 'You are a helpful assistant that writes Git commit messages.' },
         { role: 'user', content: prompt },
@@ -78,7 +78,7 @@ app.post('/generate/review-comments', authenticate, async (req, res) => {
       apiKey: apiKey,
     });
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: process.env.CHATGPT_MODEL || 'gpt-4o',
       messages: [
         { role: 'system', content: 'You are a helpful assistant that reviews code changes.' },
         { role: 'user', content: prompt },

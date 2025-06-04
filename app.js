@@ -25,6 +25,7 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
       [optional <body>]
       <BLANK LINE>
       [optional <footer(s)>]
+
     Ensure the commit message follows these rules:
     1. Subject Line: 
       - Format: ${format}
@@ -42,6 +43,14 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
       - Format: <token>: <value>
       - Use "BREAKING CHANGE" for major changes
       - Maximum of 100 characters per line
+
+    Critical Requirements
+      - Output ONLY the commit message
+      - NO additional text or explanations
+      - NO questions or comments
+      - NO formatting instructions or metadata
+      - RESPECT the maximum number of 100 characters per line
+      - DO NOT wrap the output in any special characters or delimiters such as quotes or backticks like ````
 
     Given the following staged code diff, generate a clear and concise commit message:
     ${diff}

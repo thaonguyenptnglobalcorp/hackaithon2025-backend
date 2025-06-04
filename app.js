@@ -11,17 +11,38 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/generate/commit-messages', authenticate, async (req, res) => {
-  const { diff, commitType, format, maxLength, apiKey } = req.body;
+  const { diff, format, apiKey } = req.body;
 
-  if (!diff || !commitType || !format || !maxLength) {
+  if (!diff || !format || !apiKey) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   const prompt = `
     You are an assistant that writes clear, concise Git commit messages.
-    Use the following format: ${format}
-    Commit type: ${commitType}
-    Maximum length: ${maxLength} characters
+    Use the following template: 
+      ${format}
+      <BLANK LINE>
+      [optional <body>]
+      <BLANK LINE>
+      [optional <footer(s)>]
+    Ensure the commit message follows these rules:
+    1. Subject Line: 
+      - Format: ${format}
+      - Imperative mood
+      - No capitalization
+      - No period at the end
+      - Maximum of 100 characters per line including any spaces or special characters
+    2. Body (optional):
+      - Bullet points with "-"
+      - Maximum of 100 characters per line including any spaces or special characters
+      - Bullet points that exceed the 100 characters per line count should use line breaks without adding extra bullet points
+      - Explain what and why
+      - Be objective
+    3. Footer (optional):
+      - Format: <token>: <value>
+      - Use "BREAKING CHANGE" for major changes
+      - Use "ISSUE-1234" for linking issues or tasks
+      - Maximum of 100 characters per line
 
     Given the following staged code diff, generate a clear and concise commit message:
     ${diff}

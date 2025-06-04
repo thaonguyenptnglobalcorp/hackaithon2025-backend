@@ -20,7 +20,7 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
   const prompt = `
     You are an assistant that writes clear, concise Git commit messages.
     Use the following template: 
-      ${format}
+      [required <subject line>]
       <BLANK LINE>
       [optional <body>]
       <BLANK LINE>
@@ -41,7 +41,6 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
     3. Footer (optional):
       - Format: <token>: <value>
       - Use "BREAKING CHANGE" for major changes
-      - Use "ISSUE-1234" for linking issues or tasks
       - Maximum of 100 characters per line
 
     Given the following staged code diff, generate a clear and concise commit message:

@@ -50,7 +50,7 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
       - NO questions or comments
       - NO formatting instructions or metadata
       - RESPECT the maximum number of 100 characters per line
-      - DO NOT wrap the output in any special characters or delimiters such as quotes or backticks like ````
+      - DO NOT wrap the output in any special characters or delimiters such as ````
 
     Given the following staged code diff, generate a clear and concise commit message:
     ${diff}
@@ -98,6 +98,14 @@ app.post('/generate/review-comments', authenticate, async (req, res) => {
       - Optional quick fix or rationale
       - Prioritize high-impact issues (bugs, risks) first.
       - Avoid long explanations — aim for clean, quick, actionable feedback.
+
+    Critical Requirements
+      - NO formatting instructions or metadata
+      - RESPECT the maximum number of 100 characters per line
+      - DO NOT wrap the output in any special characters or delimiters such as ````
+      - Output ONLY the review comments
+      - NO additional text or explanations
+
     Ready? I will now paste the staged code diff:
       ${diff}
   `;

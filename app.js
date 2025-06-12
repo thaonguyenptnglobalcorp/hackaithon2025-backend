@@ -3,7 +3,8 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const { OpenAI } = require('openai');
 const {authenticate} = require('./middlewares/auth.js');
-
+const { getModels } = require('./services/openAI.js');
+const LENTGH_DEFAUT = 100;
 dotenv.config();
 
 const app = express();
@@ -11,13 +12,17 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/generate/commit-messages', authenticate, async (req, res) => {
-  const { diff, format, apiKey } = req.body;
-
+  const { diff, format, apiKey, length, customerPromt, model } = req.body;
+  let lengthValue = LENTGH_DEFAUT;
   if (!diff || !format || !apiKey) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const prompt = `
+  if (length && (typeof length == 'number' || length <= 0)) {
+    //convert length to a number if it's a string
+    lengthValue = parseInt(length, 10);
+  }
+  let prompt = `
     You are an assistant that writes clear, concise Git commit messages.
     Use the following template: 
       [required <subject line>]
@@ -32,17 +37,17 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
       - Imperative mood
       - No capitalization
       - No period at the end
-      - Maximum of 100 characters per line including any spaces or special characters
+      - Maximum of ${lengthValue} characters per line including any spaces or special characters
     2. Body (optional):
       - Bullet points with "-"
-      - Maximum of 100 characters per line including any spaces or special characters
-      - Bullet points that exceed the 100 characters per line count should use line breaks without adding extra bullet points
+      - Maximum of ${lengthValue} characters per line including any spaces or special characters
+      - Bullet points that exceed the ${lengthValue} characters per line count should use line breaks without adding extra bullet points
       - Explain what and why
       - Be objective
     3. Footer (optional):
       - Format: <token>: <value>
       - Use "BREAKING CHANGE" for major changes
-      - Maximum of 100 characters per line
+      - Maximum of ${lengthValue} characters per line
 
     Critical Requirements
       - Output ONLY the commit message
@@ -55,13 +60,21 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
     Given the following staged code diff, generate a clear and concise commit message:
     ${diff}
   `;
+  if (customerPromt && customerPromt.trim() !== '') {
+    prompt = `
+      ${customerPromt}
+      Given the following staged code diff, generate a clear and concise commit message:
+      ${diff}
+      `;
+  }
 
   try {
     const openai = new OpenAI({
       apiKey: apiKey,
     });
+    let modelName = model || process.env.CHATGPT_MODEL || 'gpt-4o';
     const response = await openai.chat.completions.create({
-      model: process.env.CHATGPT_MODEL || 'gpt-4o',
+      model: modelName,
       messages: [
         { role: 'system', content: 'You are a helpful assistant that writes Git commit messages.' },
         { role: 'user', content: prompt },
@@ -128,6 +141,17 @@ app.post('/generate/review-comments', authenticate, async (req, res) => {
   } catch (err) {
     console.error('OpenAI error:', err);
     res.status(500).json({ error: 'Failed to generate review comments' });
+  }
+});
+
+app.get('/models', authenticate, async (req, res) => {
+  try {
+    const apiKey = req.apiKey || process.env.OPENAI_API_KEY;
+    const models = await getModels(apiKey);
+    res.json(models);
+  } catch (err) {
+    console.error('OpenAI error:', err);
+    res.status(500).json({ error: 'Failed to fetch models' });
   }
 });
 

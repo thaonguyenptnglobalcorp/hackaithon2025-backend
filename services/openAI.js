@@ -6,7 +6,10 @@ async function getModels(apiKey){
         apiKey: apiKey,
     });
     const models = await openai.models.list();
-    return models.data.map(model => model.id);
+    const chatModels = models.data
+      .map(model => model.id)
+      .filter(id => id.startsWith('gpt-'));
+    return chatModels;
   } catch (error) {
     console.error('Error fetching models:', error);
     throw error;

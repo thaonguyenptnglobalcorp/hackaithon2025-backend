@@ -144,7 +144,7 @@ app.post('/generate/review-comments', authenticate, async (req, res) => {
   }
 });
 
-app.get('/models', authenticate, async (req, res) => {
+app.post('/models', authenticate, async (req, res) => {
   try {
     const { apiKey } = req.body;
     const models = await getModels(apiKey || process.env.OPENAI_API_KEY);

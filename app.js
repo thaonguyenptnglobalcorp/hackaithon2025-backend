@@ -4,7 +4,7 @@ const cors = require('cors');
 const { OpenAI } = require('openai');
 const {authenticate} = require('./middlewares/auth.js');
 const { getModels } = require('./services/openAI.js');
-const LENTGH_DEFAUT = 100;
+const MAX_LENGTH_PER_LINE_DEFAULT = 100;
 dotenv.config();
 
 const app = express();
@@ -12,15 +12,15 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/generate/commit-messages', authenticate, async (req, res) => {
-  const { diff, format, apiKey, length, customerPromt, model } = req.body;
-  let lengthValue = LENTGH_DEFAUT;
+  const { diff, format, apiKey, maxLengthPerLine, customPrompt, model } = req.body;
+  let lengthValue = MAX_LENGTH_PER_LINE_DEFAULT;
   if (!diff || !format || !apiKey) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  if (length && (typeof length == 'number' || length <= 0)) {
+  if (maxLengthPerLine && (typeof maxLengthPerLine == 'number' || maxLengthPerLine <= 0)) {
     //convert length to a number if it's a string
-    lengthValue = parseInt(length, 10);
+    lengthValue = parseInt(maxLengthPerLine, 10);
   }
   let prompt = `
     You are an assistant that writes clear, concise Git commit messages.
@@ -60,9 +60,9 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
     Given the following staged code diff, generate a clear and concise commit message:
     ${diff}
   `;
-  if (customerPromt && customerPromt.trim() !== '') {
+  if (customPrompt && customPrompt.trim() !== '') {
     prompt = `
-      ${customerPromt}
+      ${customPrompt}
       Given the following staged code diff, generate a clear and concise commit message:
       ${diff}
       `;
@@ -146,8 +146,8 @@ app.post('/generate/review-comments', authenticate, async (req, res) => {
 
 app.get('/models', authenticate, async (req, res) => {
   try {
-    const apiKey = req.apiKey || process.env.OPENAI_API_KEY;
-    const models = await getModels(apiKey);
+    const { apiKey } = req.body;
+    const models = await getModels(apiKey || process.env.OPENAI_API_KEY);
     res.json(models);
   } catch (err) {
     console.error('OpenAI error:', err);

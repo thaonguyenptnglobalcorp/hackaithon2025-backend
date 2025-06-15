@@ -14,7 +14,7 @@ app.use(express.json());
 app.post('/generate/commit-messages', authenticate, async (req, res) => {
   const { diff, format, apiKey, maxLengthPerLine, customPrompt, model } = req.body;
   let lengthValue = MAX_LENGTH_PER_LINE_DEFAULT;
-  if (!diff || !format || !apiKey) {
+  if (!diff) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -70,7 +70,7 @@ app.post('/generate/commit-messages', authenticate, async (req, res) => {
 
   try {
     const openai = new OpenAI({
-      apiKey: apiKey,
+      apiKey: apiKey || process.env.OPENAI_API_KEY,
     });
     let modelName = model || process.env.CHATGPT_MODEL || 'gpt-4o';
     const response = await openai.chat.completions.create({
@@ -125,7 +125,7 @@ app.post('/generate/review-comments', authenticate, async (req, res) => {
 
   try {
     const openai = new OpenAI({
-      apiKey: apiKey,
+      apiKey: apiKey || process.env.OPENAI_API_KEY,
     });
     const response = await openai.chat.completions.create({
       model: process.env.CHATGPT_MODEL || 'gpt-4o',
